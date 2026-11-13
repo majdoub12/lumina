@@ -90,10 +90,10 @@
 /* Calm, consistent control sizing across every guided screen. */
 .phone .input-label{margin:0 0 10px;gap:5px;font-size:10px;line-height:1.3}
 .phone .input-label input{height:42px;min-height:42px;padding:0 12px;border-radius:13px;font-size:13px}
-.phone .sami-message{position:relative;display:flex;align-items:flex-end;gap:7px;margin:6px 0 12px}
+.phone .sami-message{position:relative;display:flex;flex-direction:row-reverse;align-items:flex-end;gap:7px;margin:6px 0 12px}
 .phone .sami-message-character.sami-character{width:48px;height:70px;flex:none;margin:0 -2px 0 -5px;animation:none}
 .phone .sami-message-content{position:relative;flex:1;min-width:0;padding-right:13px}
-.phone .sami-message-listen{display:flex;flex-direction:column;align-items:stretch;gap:4px;width:100%;padding:10px 12px;border:1px solid #eadbc8;border-radius:15px 15px 15px 5px;background:#fff9ee;text-align:left;white-space:normal}
+.phone .sami-message-listen{display:flex;flex-direction:column;align-items:stretch;gap:4px;width:100%;padding:10px 12px;border:1px solid #eadbc8;border-radius:15px 15px 5px 15px;background:#fff9ee;text-align:left;white-space:normal}
 .phone .sami-message-listen:focus-visible{outline:3px solid #a94760;outline-offset:2px}
 .phone .sami-message-quote{display:block;color:#443a34;font:italic 13px/1.35 Georgia,serif}
 .phone .sami-message-detail{display:block;color:#554b44;font-size:11px;line-height:1.4}
