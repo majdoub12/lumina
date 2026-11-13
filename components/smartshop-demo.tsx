@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { ArrowLeft, ArrowRight, AudioLines, Check, ChevronRight, CircleHelp, Headphones, Home, MapPin, Package, Search, ShoppingBag, ShoppingBasket, Sparkles, Store, Truck, Volume2, X } from 'lucide-react'
 
@@ -19,9 +19,9 @@ const samiPoses = {
 type SamiPose = keyof typeof samiPoses
 
 const voiceSamples: Record<string, string> = {
-  English:'Hi, I’m Sami. Tell me what you’re shopping for, and we’ll take it one easy step at a time.',
-  Français:'Bonjour, je m’appelle Sami. Dites-moi ce que vous cherchez et nous le trouverons ensemble, étape par étape.',
-  عربي:'مرحباً، أنا سامي. أخبرني عمّا تبحث عنه وسأساعدك خطوةً خطوة.',
+  English:'Hi, I’m Sami. I’ll guide you through each step at your own pace.',
+  Français:'Bonjour, je m’appelle Sami. Je vous accompagne à chaque étape, à votre rythme.',
+  عربي:'مرحباً، أنا سامي. سأرافقك خطوةً خطوة، على راحتك.',
 }
 
 const journeyStops = [
@@ -45,6 +45,7 @@ export function SmartShopDemo() {
   const [overlay, setOverlay] = useState('')
   const [cart, setCart] = useState(0)
   const [spoken, setSpoken] = useState(false)
+  const speechRequestRef = useRef<SpeechSynthesisUtterance | null>(null)
   const [speechCaption, setSpeechCaption] = useState('')
   const [language, setLanguage] = useState('English')
   const [copied, setCopied] = useState(false)
@@ -63,6 +64,7 @@ export function SmartShopDemo() {
   const trackingMessage = trackingStep === 0 ? 'Your order is in. I’ll stay right here with you.' : trackingStep === 1 ? `Good news! The shop confirmed. They’re preparing your ${selectedProduct.name}.` : trackingStep === 2 ? 'All wrapped up. Your parcel is getting ready to leave.' : trackingStep === 3 ? 'I’m on the road with your parcel. Nearly there!' : 'I made it! Your parcel is at your door.'
 
   const stopSpeaking = () => {
+    speechRequestRef.current = null
     if (typeof window !== 'undefined') window.speechSynthesis?.cancel()
     setSpoken(false)
   }
@@ -74,15 +76,32 @@ export function SmartShopDemo() {
       return
     }
     window.speechSynthesis.cancel()
+    speechRequestRef.current = null
+    setSpoken(false)
+    const voices = window.speechSynthesis.getVoices()
+    const voice = voices.find((candidate) => candidate.lang.toLowerCase() === locale.toLowerCase()) ?? voices.find((candidate) => candidate.lang.toLowerCase().startsWith(`${locale.split('-')[0].toLowerCase()}-`))
+    if (locale !== 'en-US' && !voice) {
+      const languageName = locale.startsWith('ar') ? 'Arabic' : 'French'
+      setSpeechCaption(`${text} ${languageName} speech is unavailable on this device. Captions remain available.`)
+      return
+    }
     const utterance = new SpeechSynthesisUtterance(text)
     utterance.lang = locale
-    utterance.onstart = () => setSpoken(true)
-    utterance.onend = () => setSpoken(false)
-    utterance.onerror = () => setSpoken(false)
+    if (voice) utterance.voice = voice
+    speechRequestRef.current = utterance
+    setSpoken(true)
+    const finish = () => {
+      if (speechRequestRef.current !== utterance) return
+      speechRequestRef.current = null
+      setSpoken(false)
+    }
+    utterance.onstart = () => { if (speechRequestRef.current === utterance) setSpoken(true) }
+    utterance.onend = finish
+    utterance.onerror = finish
     window.speechSynthesis.speak(utterance)
   }
 
-  useEffect(() => () => { window.speechSynthesis?.cancel() }, [])
+  useEffect(() => () => { speechRequestRef.current = null; window.speechSynthesis?.cancel() }, [])
 
   const go = (next: Screen) => { if (next !== screen) { stopSpeaking(); setSpeechCaption('') } setOverlay(''); setScreen(next) }
   const resetFlow = (next: Flow) => { stopSpeaking(); setSpeechCaption(''); setFlow(next); setOverlay(''); setScreen(next.startsWith('A') ? 'welcome' : next.startsWith('B') ? 'home' : 'shop') }
@@ -100,7 +119,7 @@ export function SmartShopDemo() {
           <div className="phone-content" key={screen}>
             {screen === 'welcome' && <><div className="welcome-art"><div className="sun-disc"/><div className="welcome-speech">“Marhba! We’ll go at your pace.”</div><SamiCharacter pose="wave" alt="Sami waves hello" className="welcome-guide"/><span className="art-stamp">YOUR<br/>OWN<br/>PACE</span></div><div className="welcome-copy"><span className="kicker">MARHBA · WELCOME</span><h2>Shopping, made<br/>a little less scary.</h2><p>We can go through it together. You stay in control, at every step.</p></div><button className="listen-banner" onClick={() => {go('voice'); speak(voiceSamples[language], language === 'Français' ? 'fr-FR' : language === 'عربي' ? 'ar-TN' : 'en-US')}}><span className="listen-icon"><AudioLines size={19}/></span><span><b>Prefer to listen?</b><small>Tap here and Sami will talk you through.</small></span><ChevronRight size={17}/></button><div className="welcome-actions"><button className="primary" onClick={() => go('home')}>Show me around <ArrowRight size={16}/></button><button className="text-action" onClick={() => go('home')}>I know my way around</button></div><div className="privacy-note"><Check size={13}/> No account needed to explore</div></>}
             {screen === 'home' && <><div className="greeting"><div><span className="kicker">TUNIS, TUNISIA · 24°</span><h2>Marhba, Yasmine <span>✳</span></h2></div><button className="guide-avatar" onClick={() => setOverlay('Sami, your shop guide')} aria-label="Meet Sami"><SamiAvatar/></button></div><button className="search-field" onClick={() => go('voice')}><Volume2 size={16}/><span>Listen with Sami</span><ChevronRight size={16}/></button><div className="guide-card"><SamiCharacter pose="point" alt="Sami points you toward the shop" className="guide-character"/><div><span className="kicker">SAMI · YOUR SHOP GUIDE</span><p>First time here? I can help you find something that feels right.</p><button onClick={() => setOverlay('Find it for me 1 of 3')}>Find it for me <ArrowRight size={13}/></button></div><button aria-label="Dismiss guide" className="dismiss" onClick={(e) => e.currentTarget.parentElement?.classList.add('dismissed')}><X size={15}/></button></div><div className="section-head"><div><span className="kicker">A FEW GOOD THINGS</span><h3>Easy to love</h3></div><button className="quiet-link" onClick={() => go('voice')}>Ask Sami <ArrowRight size={13}/></button></div><div className="product-grid">{products.map((product, index) => <button key={product.name} className="product-tile" onClick={() => {setSelectedProduct(product); go('product')}}><div className="tile-photo"><Image src={product.image} alt={product.name} fill sizes="(max-width: 700px) 38vw, 150px"/><span className="tile-tag">{index === 0 ? 'A good first pick' : 'Easy everyday'}</span></div><b>{product.name}</b><small>{product.detail}</small><strong>{product.price} TND</strong></button>)}</div><div className="trust-line"><span>✓</span> Pay when it arrives · no card needed</div></>}
-            {screen === 'voice' && <><div className="voice-welcome"><div className="voice-greeting"><SamiCharacter pose="wave" alt="Sami waves hello" className="voice-character"/><span>“Tell me what you&apos;re looking for. I&apos;ll help you find it.”</span></div><span className="kicker">YOUR SHOP, YOUR WAY</span><h2>Just say what<br/>you&apos;re looking for.</h2><p>Sami can read each step aloud. Follow the words on screen, or pick a language above for this sample.</p></div><div className={`listen-player ${spoken ? 'speaking' : ''}`} role="group" aria-label="Sami read-aloud player"><button className="listen-control" onClick={() => spoken ? stopSpeaking() : speak(voiceSamples[language], language === 'Français' ? 'fr-FR' : language === 'عربي' ? 'ar-TN' : 'en-US')} aria-label={spoken ? 'Stop Sami speaking' : 'Play Sami sample'}><Volume2 size={19}/></button><div className="listen-player-copy"><span>SAMI READS THIS ALOUD</span><p className="voice-caption" aria-live="polite" dir={language === 'عربي' ? 'rtl' : 'auto'}>{speechCaption || voiceSamples[language]}</p></div><div className="listen-wave" aria-hidden="true"><i/><i/><i/><i/><i/></div></div><p className="hold-label">{spoken ? 'Sami is speaking…' : 'Tap play to hear the sample'}</p><button className="primary full" onClick={() => go('product')}>Show me a suggestion <ArrowRight size={16}/></button><button className="text-action" onClick={() => speak(voiceSamples[language], language === 'Français' ? 'fr-FR' : language === 'عربي' ? 'ar-TN' : 'en-US')}>Listen again</button><p className="demo-note">VOICE PREVIEW · Read aloud uses your device&apos;s speech voice. Spoken search is a future concept.</p></>}
+            {screen === 'voice' && <><div className="voice-welcome"><div className="voice-greeting"><SamiCharacter pose="wave" alt="Sami waves hello" className="voice-character"/><span>“I can read each step aloud, so you can follow along.”</span></div><span className="kicker">YOUR SHOP, YOUR WAY</span><h2>Listen with Sami<br/>at your pace.</h2><p>Sami can read each step aloud. Follow the words on screen, or pick a language above for this sample.</p></div><div className={`listen-player ${spoken ? 'speaking' : ''}`} role="group" aria-label="Sami read-aloud player"><button className="listen-control" onClick={() => spoken ? stopSpeaking() : speak(voiceSamples[language], language === 'Français' ? 'fr-FR' : language === 'عربي' ? 'ar-TN' : 'en-US')} aria-label={spoken ? 'Stop Sami speaking' : 'Play Sami sample'}><Volume2 size={19}/></button><div className="listen-player-copy"><span>SAMI READS THIS ALOUD</span><p className="voice-caption" aria-live="polite" dir={language === 'عربي' ? 'rtl' : 'auto'}>{speechCaption || voiceSamples[language]}</p></div><div className="listen-wave" aria-hidden="true"><i/><i/><i/><i/><i/></div></div><p className="hold-label">{spoken ? 'Sami is speaking…' : 'Tap play to hear the sample'}</p><button className="primary full" onClick={() => go('product')}>Show me a suggestion <ArrowRight size={16}/></button><button className="text-action" onClick={() => speak(voiceSamples[language], language === 'Français' ? 'fr-FR' : language === 'عربي' ? 'ar-TN' : 'en-US')}>Listen again</button><p className="demo-note">VOICE PREVIEW · Read aloud uses your device&apos;s speech voice. Spoken search is a future concept.</p></>}
             {screen === 'product' && <><div className="product-hero"><Image src={selectedProduct.image} alt={selectedProduct.name} fill sizes="280px"/><span className="hero-label">SAMI&apos;S PICK FOR YOU</span><button className="hero-sound" aria-label="Listen to product description" onClick={() => speak(`${selectedProduct.name}. ${selectedProduct.detail}. ${selectedProduct.price} Tunisian dinars. Pay when it arrives.`)}><Volume2 size={17}/></button></div><div className="product-details"><span className="kicker">EASY EVERYDAY · {selectedProduct.fabric.toUpperCase()}</span><h2>{selectedProduct.name}</h2><div className="price-row"><strong>{selectedProduct.price} TND</strong><span>Pay on delivery</span></div><p>{selectedProduct.detail}. A simple first buy—and you only pay when it reaches your door.</p><section className="fit-card" aria-labelledby="fit-title"><div className="fit-heading"><span className="kicker">A LITTLE HELP WITH SIZE</span><h3 id="fit-title">See how it might fit.</h3><p>A gentle starting point. No tape measure needed.</p></div><div className="fit-guide-line"><SamiCharacter pose="point" alt="Sami points to your fit advice" className="fit-guide-character"/><p>“Not sure about size? Tell me your height and how you like it to fit.”</p></div><div className="fit-preview"><div className={`fit-figure ${fitPreference.toLowerCase()}`} aria-hidden="true"><i className="fit-head"/><i className="fit-body"/><i className="fit-arm left"/><i className="fit-arm right"/><i className="fit-leg left"/><i className="fit-leg right"/></div><div className="fit-result"><span>YOUR STARTING SIZE</span><b>{recommendedSize}</b><small>For around {heightCm} cm<br/>{fitPreference.toLowerCase()} fit</small></div></div><label className="fit-height">Your height <span><input aria-label="Your height in centimeters" type="number" min="140" max="205" value={heightInput} onChange={(event) => setHeightInput(event.target.value)} onBlur={() => setHeightInput(String(Math.min(205, Math.max(140, Number(heightInput) || 168))))}/> cm</span></label><div className="fit-options" role="group" aria-label="How would you like it to fit?">{(['Closer','Relaxed'] as const).map(option => <button key={option} className={fitPreference === option ? 'active' : ''} onClick={() => setFitPreference(option)}>{option} fit</button>)}</div><p className="fit-disclaimer">A starting suggestion based on height only. The shop can help confirm the fit by phone.</p><button className="fit-use" onClick={() => setSize(recommendedSize)}>Use size {recommendedSize} <Check size={15}/></button></section><button className="helper-inline" onClick={() => setOverlay('Find your size')}><SamiAvatar className="helper-sami"/><span><b>Not sure about your size?</b><small>Sami can help you find it in 3 questions.</small></span><ChevronRight size={17}/></button><div className="size-head"><b>Choose your size</b><button onClick={() => setOverlay('Size chart')}>Size chart</button></div><div className="size-row">{['S','M','L','XL'].map(s => <button key={s} onClick={() => s === 'XL' ? setOverlay('XL is not available') : setSize(s)} className={size === s ? 'picked' : ''}>{s}</button>)}</div><div className="fit-note"><Check size={13}/> Easy returns if it doesn&apos;t feel right</div><button className="primary full" onClick={addToCart}>Add to basket <ShoppingBag size={16}/></button><button className="quiet-link center" onClick={() => setOverlay('Wrong size? Let’s fix that.')}>What if it doesn&apos;t fit?</button></div></>}
             {screen === 'basket' && <><div className="basket-title"><span className="kicker">NO RUSH, NO PRESSURE</span><h2>Your basket <span>({cart || 1})</span></h2></div><div className="basket-guide"><SamiCharacter pose="basket" alt="Sami carries your chosen clothes" className="basket-character"/><span><b>Sami says</b><small>“Your basket is safe. Nothing is ordered until you say so.”</small></span></div><div className="basket-item"><div className="basket-photo"><Image src={selectedProduct.image} alt={selectedProduct.name} fill sizes="76px"/></div><div className="basket-info"><b>{selectedProduct.name}</b><small>{selectedProduct.color} · Size {size}</small><strong>{selectedProduct.price * (cart || 1)} TND</strong><div className="quantity"><button onClick={() => setCart(Math.max(0, cart-1))} aria-label="Remove one">−</button><span>{cart || 1}</span><button onClick={() => setCart(cart+1)} aria-label="Add one">+</button></div></div><button className="remove-link" onClick={() => {setCart(0); setOverlay('Basket · Empty')}}>Remove</button></div><div className="totals"><div><span>Delivery</span><b>7 TND</b></div><div className="total-line"><span>Total, at your door</span><b>{(cart || 1)*selectedProduct.price+7} TND</b></div></div><div className="delivery-callout"><Package size={17}/><span>You pay the courier when your parcel arrives. <b>No card, no surprises.</b></span></div><button className="primary full" onClick={() => go('delivery')}>Continue to delivery <ArrowRight size={16}/></button><button className="quiet-link center" onClick={() => go('home')}>Keep looking around</button></>}
             {screen === 'delivery' && <Checkout title="Where should it find you?" step="1 of 3" description="We’ll bring it to your door. No account or card needed." next="Continue to payment" onNext={() => go('payment')} onHelp={() => setOverlay('Help · Delivery')} onBack={() => go('basket')} />}
