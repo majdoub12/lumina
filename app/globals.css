@@ -120,6 +120,14 @@
 .phone .checkout-help-assistant .sami-message-content{padding-right:13px}
 .phone .checkout-help-assistant .sami-message-card{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;padding:10px 12px;border:1px solid #eadbc8;border-radius:15px 15px 5px 15px;background:#fff9ee}
 .phone .checkout-return-button{margin-top:2px}
+.phone .article-results-trigger{display:flex;align-items:center;justify-content:center;gap:7px;align-self:flex-start;min-height:36px;margin:-4px 0 0 48px;padding:8px 13px;border:1px solid #963c54;border-radius:999px;background:#963c54;color:#fff;font-size:11px;font-weight:700}
+.phone .article-results-trigger:focus-visible,.phone .help-article:focus-visible{outline:2px solid #963c54;outline-offset:2px}
+.phone .help-articles{display:grid;gap:8px;width:100%;padding:10px;border:1px solid #eadbc8;border-radius:16px;background:#fffefa}
+.phone .help-articles h3{margin:0;color:#443a34;font-size:12px;font-weight:700}
+.phone .help-article{padding:9px 10px;border:1px solid #f0e7de;border-radius:12px;background:#fff9ee}
+.phone .help-article span{color:#963c54;font-size:9px;font-weight:700}
+.phone .help-article h4{margin:4px 0;color:#443a34;font-size:11px;font-weight:700}
+.phone .help-article p{margin:0;color:#756b63;font-size:10px;line-height:1.45}
 .phone-content:has(.review-sami-note) .review-card{margin:6px 0;padding:5px 10px}
 .phone-content:has(.review-sami-note) .review-line{padding:7px 0}
 .phone-content:has(.review-sami-note) .review-total{padding:8px 0 3px}
