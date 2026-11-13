@@ -100,10 +100,13 @@
 .phone .sami-message-prompt{display:block;margin-top:4px;color:var(--berry);font-size:10px;font-weight:700}
 .phone .sami-message-dismiss{position:absolute;z-index:1;top:-7px;right:-3px;display:grid;place-items:center;width:24px;height:24px;padding:0;border:0;border-radius:50%;background:#fffefa;color:#8b8178}
 .phone .sami-message-dismiss:focus-visible{outline:2px solid #a94760;outline-offset:1px}
-.phone .choice-art>.sami-message{position:absolute;z-index:3;right:8px;bottom:8px;left:8px;margin:0}
-.phone .choice-art .sami-message-character.sami-character{width:42px;height:62px}
-.phone .choice-art .sami-message-quote{font-size:11px}
-.phone .choice-art .sami-message-prompt{font-size:9px}
+.phone .choice-art>.sami-message{position:absolute;inset:0;z-index:3;display:block;margin:0}
+.phone .choice-art .sami-message-character.sami-character{position:absolute;z-index:2;left:69%;bottom:-5px;width:160px;height:255px;margin:0;transform:translateX(-50%);filter:drop-shadow(0 6px 5px #39241b20)}
+.phone .choice-art .sami-message-content{position:absolute;z-index:3;top:12px;left:12px;width:min(66%,230px);padding-right:12px}
+.phone .choice-art .sami-message-listen{gap:6px;padding:13px 15px;border-color:#efe3d4;border-radius:18px 18px 18px 5px;background:#fffefa;box-shadow:0 6px 18px #573b2212}
+.phone .choice-art .sami-message-quote{font-size:14px;line-height:1.4}
+.phone .choice-art .sami-message-prompt{font-size:11px}
+.phone .choice-art .sami-message-dismiss{top:-8px;right:-4px;width:28px;height:28px;background:#fffefa}
 .phone .location-picker{gap:7px;margin:2px 0 13px}
 .phone .location-button{min-height:39px;height:39px;border-radius:12px;font-size:10px}
 .phone .location-note,.phone .location-status{font-size:9px;line-height:1.45}
