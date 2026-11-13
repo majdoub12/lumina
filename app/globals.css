@@ -86,6 +86,23 @@
 .phone .confirmation-guide{min-height:78px;margin:4px 0 8px;padding:0 6px;gap:7px}
 .phone .confirmation-character.sami-character{width:58px;height:76px;margin:0;align-self:flex-end}
 .phone .confirmation-guide p{max-width:none;padding:8px 10px;font-size:10px}
+
+/* Calm, consistent control sizing across every guided screen. */
+.phone .input-label{margin:0 0 10px;gap:5px;font-size:10px;line-height:1.3}
+.phone .input-label input{height:42px;min-height:42px;padding:0 12px;border-radius:13px;font-size:13px}
+.phone .checkout-guide{display:flex;align-items:flex-start;gap:8px;margin:2px 0 12px;padding:10px 11px;border:1px solid #eadbc8;border-radius:15px 15px 15px 5px;background:#fff9ee}
+.phone .checkout-guide-character.sami-character{width:38px;height:54px;margin:-2px 0 0 -3px}
+.phone .checkout-guide>div{min-width:0;flex:1}
+.phone .checkout-guide b{display:block;margin:0 0 4px;color:#443a34;font:italic 12px/1.35 Georgia,serif}
+.phone .checkout-guide p{margin:0;color:#6c6158;font-size:10px;line-height:1.4}
+.phone .location-picker{gap:7px;margin:2px 0 13px}
+.phone .location-button{min-height:39px;height:39px;border-radius:12px;font-size:10px}
+.phone .location-note,.phone .location-status{font-size:9px;line-height:1.45}
+.phone .location-map{height:124px}
+.phone .primary.full,.phone .outline.full{min-height:42px;height:42px;padding:0 14px;border-radius:12px;font-size:11px}
+.phone .checkout-cta{margin-top:2px}
+.phone .delivery-summary{min-height:40px;margin:8px 0 12px;padding:0 12px;border-radius:12px}
+@media(max-width:390px){.phone .checkout-guide{padding:9px}.phone .checkout-guide-character.sami-character{width:33px;height:48px}.phone .checkout-guide b{font-size:11px}}
 @media(prefers-reduced-motion:reduce){.phone .map-road-center{animation:none}}
 .app-header-actions{display:flex;align-items:center;margin-left:auto;gap:2px}.guide-toggle.is-on{color:var(--berry)}.guide-toggle:not(.is-on){opacity:.5}
 .welcome-speech{border:1px solid #e5d4bd;text-align:left;cursor:pointer}.welcome-speech:focus-visible,.choice-message:focus-visible,.guide-message:focus-visible{outline:3px solid #a94760;outline-offset:3px}
