@@ -109,6 +109,22 @@
 .phone .talk-composer input::placeholder{color:#90877f}
 .phone .talk-composer :focus-visible{outline:2px solid #963c54;outline-offset:2px}
 .phone .talk-status{margin:-5px 2px 0;color:#85513f;font-size:10px;line-height:1.4}
+.phone .checkout-help-link{display:block;width:100%;min-height:36px;margin:-3px 0 4px;padding:8px 10px;background:transparent;color:#786b64;text-align:center;font-size:11px}
+.phone .checkout-help-link:focus-visible{outline:2px solid #963c54;outline-offset:0;border-radius:8px}
+.phone .checkout-help-thread{display:flex;flex-direction:column;gap:10px;width:100%;margin:0 0 2px}
+.phone .checkout-help-user{align-self:flex-end;max-width:88%;padding:9px 12px;border-radius:15px 15px 5px 15px;background:#f0e7de;color:#473c36}
+.phone .checkout-help-user span{display:block;margin-bottom:3px;color:#8b2943;font-size:9px;font-weight:700}
+.phone .checkout-help-user p{margin:0;font-size:12px;line-height:1.45}
+.phone .checkout-help-assistant{min-width:0}
+.phone .checkout-help-assistant .sami-message{margin:0;gap:7px}
+.phone .checkout-help-assistant .sami-message-content{padding-right:13px}
+.phone .checkout-help-assistant .sami-message-card{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;padding:10px 12px;border:1px solid #eadbc8;border-radius:15px 15px 5px 15px;background:#fff9ee}
+.phone .checkout-return-button{margin-top:2px}
+.phone-content:has(.review-sami-note) .review-card{margin:6px 0;padding:5px 10px}
+.phone-content:has(.review-sami-note) .review-line{padding:7px 0}
+.phone-content:has(.review-sami-note) .review-total{padding:8px 0 3px}
+.phone-content:has(.review-sami-note) .reassure{margin-bottom:7px;padding:7px 10px;line-height:1.45}
+.phone-content:has(.review-sami-note) .review-sami-note{margin-top:0;margin-bottom:6px}
 .phone .confirmation-guide{min-height:78px;margin:4px 0 8px;padding:0 6px;gap:7px}
 .phone .confirmation-character.sami-character{width:58px;height:76px;margin:0;align-self:flex-end}
 .phone .confirmation-guide p{max-width:none;padding:8px 10px;font-size:10px}
