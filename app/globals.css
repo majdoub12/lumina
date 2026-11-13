@@ -62,7 +62,7 @@
 .phone .basket-guide>p{margin:0;padding:8px 10px;font-size:10px}
 .phone .tracking-top{display:flex;align-items:center;justify-content:space-between;margin:0 0 8px}
 .phone .tracking-top strong{color:var(--berry);font-size:11px;font-weight:700}
-.phone .journey-map{height:clamp(320px,88vw,350px);margin:0 0 8px;border-radius:18px}
+.phone .journey-map{height:clamp(320px,88vw,350px);margin:0 0 8px;border-radius:18px}.location-picker{display:grid;gap:7px;margin:-4px 0 12px}.location-button{display:flex;align-items:center;justify-content:center;gap:8px;min-height:42px;border:1px solid #e5d7c8;border-radius:12px;background:#fffaf3;color:#8b2943;font-size:11px;font-weight:700}.location-button:focus-visible{outline:3px solid #a94760;outline-offset:2px}.location-button:disabled{opacity:.65;cursor:wait}.location-note,.location-status{margin:0;color:#766b62;font-size:9px;line-height:1.45}.location-status{font-size:10px}.location-status.is-error{color:#9b3547}.location-map{height:132px;overflow:hidden;border:1px solid #e5d7c8;border-radius:12px;background:#e8dfd5}.location-map iframe{display:block;width:100%;height:100%;border:0}
 .phone .map-road-center{stroke-dasharray:5 11;animation:smartshop-road-flow 16s linear infinite}
 .phone .map-stop.current>span{transform:none;box-shadow:0 0 0 3px #ffca4a55}
 @keyframes smartshop-road-flow{to{stroke-dashoffset:-96}}
