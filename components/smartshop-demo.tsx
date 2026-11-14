@@ -233,6 +233,7 @@ export function SmartShopDemo() {
       payment: 'You can pay with cash when your parcel arrives. No bank card is needed.',
       review: 'Here is one last look at your order. You will not be charged now.',
       confirmation: 'Your order is received. The shop will call before your parcel is sent.',
+      orders: 'You can search by order number or by what’s inside it, like Cotton T-shirt.',
       tracking: trackingMessage,
       shop: 'Welcome to the shop console. Here is the order awaiting confirmation.',
     }
