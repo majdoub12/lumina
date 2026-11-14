@@ -4,7 +4,7 @@ import './globals.css'
 
 export const metadata: Metadata = {
   title: 'SmartShop — A kinder first shop',
-  description: 'An inclusive ecommerce concept for first-time online shoppers. Meet Sami, try a personalized 3D fit preview, and follow an order journey that feels human.',
+  description: 'An inclusive ecommerce concept for first-time online shoppers. Meet Sami, preview an illustrative 3D fit, and follow an order journey that feels human.',
   generator: 'v0.app',
   icons: {
     icon: [

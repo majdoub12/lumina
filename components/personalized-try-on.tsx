@@ -135,7 +135,7 @@ export function PersonalizedTryOn({
         className="try-on-canvas"
         role="group"
         tabIndex={0}
-        aria-label={`Interactive 3D avatar wearing ${product.name}. Drag to rotate, or use the left and right arrow keys.`}
+        aria-label={`Illustrative 3D mannequin wearing ${product.name}. Drag to rotate, or use the left and right arrow keys.`}
         aria-describedby="try-on-rotation-help"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -191,7 +191,7 @@ function AvatarFigure({
   }
   const itemColor = colorByProduct[product.color] ?? '#8a6d5e'
   const shirtColor = isBottomItem ? '#e8e3db' : itemColor
-  const trouserColor = isBottomItem ? itemColor : '#343536'
+  const trouserColor = isBottomItem ? itemColor : (['Black', 'Indigo'].includes(product.color) ? '#cfc7ba' : '#4a4b4d')
   const hasLongSleeves = product.name.toLowerCase().includes('shirt') || product.name.toLowerCase().includes('sweatshirt')
   const sleeveColor = hasLongSleeves ? shirtColor : '#d9c4b2'
 
@@ -261,7 +261,7 @@ function AvatarFallback({
   const colors: Record<string, string> = { Black: '#30302e', Ivory: '#e7dfcf', Indigo: '#54709a', Rose: '#b46e79' }
   const itemColor = colors[product.color] ?? '#8a6d5e'
   const shirtColor = isBottomItem ? '#e8e3db' : itemColor
-  const trouserColor = isBottomItem ? itemColor : '#343536'
+  const trouserColor = isBottomItem ? itemColor : (['Black', 'Indigo'].includes(product.color) ? '#cfc7ba' : '#4a4b4d')
   const hasLongSleeves = product.name.toLowerCase().includes('shirt') || product.name.toLowerCase().includes('sweatshirt')
   const sleeveColor = hasLongSleeves ? shirtColor : '#d9c4b2'
 
