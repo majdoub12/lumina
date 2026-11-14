@@ -257,3 +257,20 @@
 .sheet>*{max-width:100%;min-width:0}
 .sheet h2,.sheet p{overflow-wrap:anywhere}
 @media(prefers-reduced-motion:reduce){.tile-photo,.product-hero,.basket-photo{animation:none}}
+
+/* ---- mannequin turntable ---- */
+.try-on-canvas.mannequin-stage{position:relative;height:300px;overflow:hidden;background:radial-gradient(ellipse at 50% 14%,#fcf8f1 0,#f2eadf 52%,#e5dac9 100%)}
+.mannequin-floor{position:absolute;left:0;right:0;bottom:0;height:46px;background:linear-gradient(#e9dfd0,#ddd1bf);border-top:1px solid #f6efe4}
+.mannequin-shadow{position:absolute;left:50%;bottom:11px;height:15px;transform:translateX(-50%);border-radius:50%;background:radial-gradient(ellipse at center,#33261c55 0,#33261c00 72%);transition:width .5s cubic-bezier(.2,.8,.2,1)}
+.mannequin-figure{position:absolute;left:50%;bottom:20px;aspect-ratio:272/900;transform-origin:50% 100%;transition:height .5s cubic-bezier(.2,.8,.2,1),transform .5s cubic-bezier(.2,.8,.2,1);pointer-events:none}
+.mannequin-breathe{position:absolute;inset:0;transform-origin:50% 100%;animation:mannequin-breathe 4.4s ease-in-out infinite}
+.mannequin-figure img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:50% 100%;user-select:none;-webkit-user-drag:none;filter:drop-shadow(0 7px 8px #33261c26);mix-blend-mode:normal}
+@keyframes mannequin-breathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.006)}}
+.mannequin-ruler{position:absolute;left:10px;top:0;bottom:0;width:30px}
+.mannequin-ruler span{position:absolute;left:0;display:flex;align-items:center;gap:3px;color:#9a8c7c;font-size:7px;font-weight:700;transform:translateY(50%)}
+.mannequin-ruler i{display:block;width:9px;height:1px;background:#b9a995}
+.mannequin-marker{position:absolute;left:44px;right:12px;height:0;border-top:1px dashed #963c54aa;transition:bottom .5s cubic-bezier(.2,.8,.2,1)}
+.mannequin-marker b{position:absolute;right:0;top:-9px;padding:3px 7px;border-radius:10px;background:#963c54;color:#fff;font-size:9px;font-weight:700;letter-spacing:.02em;box-shadow:0 2px 6px #963c5430}
+.mannequin-chip{position:absolute;left:12px;bottom:10px;padding:4px 8px;border-radius:11px;background:#fffefae6;color:#5b4a3f;font-size:9px;font-weight:700;box-shadow:0 1px 4px #33261c14}
+.mannequin-label{position:absolute;left:0;right:0;top:9px;text-align:center;color:#8a7a69;font-size:8px;font-weight:700;letter-spacing:.06em}
+@media(prefers-reduced-motion:reduce){.mannequin-breathe{animation:none}.mannequin-figure,.mannequin-shadow,.mannequin-marker{transition:none}}

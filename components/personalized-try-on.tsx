@@ -1,11 +1,9 @@
 'use client'
 
-import { Canvas } from '@react-three/fiber'
 import { RotateCcw } from 'lucide-react'
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 
 type FitPreference = 'Closer' | 'Relaxed'
-type TryOnProduct = { name: string; color: string; fabric: string }
 
 type FitSlidersProps = {
   heightInput: string
@@ -81,61 +79,103 @@ export function FitSliders({
   )
 }
 
-export function PersonalizedTryOn({
-  heightCm,
-  weightKg,
-  product,
-}: {
-  heightCm: number
-  weightKg: number
-  product: TryOnProduct
-}) {
-  const [rotation, setRotation] = useState(0)
-  const [supportsWebGL, setSupportsWebGL] = useState(false)
+/* ---------- Mannequin turntable ----------
+   Three photographed views (front, side, back) are blended as the user drags, so the
+   mannequin appears to turn. The figure is then scaled from the sliders:
+   height  -> overall height against a 205 cm reference
+   weight  -> width, through a simple height/weight ratio.
+   This is an illustration, not a body scan or a fit calculation. */
+const MANNEQUIN_VIEWS = ['front', 'side', 'back', 'side'] as const
+const SIDE_WIDTH_RATIO = 165 / 270
+const MAX_HEIGHT_CM = 205
+const STAGE_FIGURE_PX = 246
+const FLOOR_PX = 20
+const lerp = (from: number, to: number, amount: number) => from + (to - from) * amount
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+
+export function MannequinPreview({ heightCm, weightKg }: { heightCm: number; weightKg: number }) {
+  const [angle, setAngle] = useState(24)
   const dragging = useRef(false)
   const lastPointerX = useRef(0)
+  const velocity = useRef(0)
+  const lastInteraction = useRef(0)
 
   useEffect(() => {
-    const canvas = document.createElement('canvas')
-    const context = canvas.getContext('webgl2')
-    setSupportsWebGL(Boolean(context))
-    context?.getExtension('WEBGL_lose_context')?.loseContext()
+    if (typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    let frame = 0
+    const tick = () => {
+      if (!dragging.current) {
+        if (Math.abs(velocity.current) > 0.03) {
+          velocity.current *= 0.93
+          setAngle((current) => current + velocity.current)
+        } else if (lastInteraction.current === 0 || Date.now() - lastInteraction.current > 6000) {
+          setAngle((current) => current + 0.2)
+        }
+      }
+      frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
   }, [])
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     dragging.current = true
+    velocity.current = 0
+    lastInteraction.current = Date.now()
     lastPointerX.current = event.clientX
     event.currentTarget.setPointerCapture(event.pointerId)
   }
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (!dragging.current) return
-    const delta = event.clientX - lastPointerX.current
+    const delta = (event.clientX - lastPointerX.current) * 0.8
     lastPointerX.current = event.clientX
-    setRotation((current) => current + delta * 0.012)
+    velocity.current = delta
+    lastInteraction.current = Date.now()
+    setAngle((current) => current + delta)
   }
 
   const stopDragging = (event: PointerEvent<HTMLDivElement>) => {
     dragging.current = false
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId)
-    }
+    lastInteraction.current = Date.now()
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
       event.preventDefault()
-      setRotation((current) => current + (event.key === 'ArrowLeft' ? -0.3 : 0.3))
+      lastInteraction.current = Date.now()
+      setAngle((current) => current + (event.key === 'ArrowLeft' ? -18 : 18))
     }
   }
+
+  const normalized = ((angle % 360) + 360) % 360
+  const segment = Math.floor(normalized / 90)
+  const progress = (normalized % 90) / 90
+  const eased = progress * progress * (3 - 2 * progress)
+  const fromIndex = segment
+  const toIndex = (segment + 1) % 4
+  const widthOf = (view: (typeof MANNEQUIN_VIEWS)[number]) => (view === 'side' ? SIDE_WIDTH_RATIO : 1)
+  const fromWidth = widthOf(MANNEQUIN_VIEWS[fromIndex])
+  const toWidth = widthOf(MANNEQUIN_VIEWS[toIndex])
+  const layers = [
+    { index: fromIndex, scale: lerp(1, toWidth / fromWidth, eased), opacity: eased < 0.55 ? 1 : clamp((1 - eased) / 0.45, 0, 1) },
+    { index: toIndex, scale: lerp(fromWidth / toWidth, 1, eased), opacity: clamp(eased / 0.55, 0, 1) },
+  ]
+
+  const bmi = weightKg / ((heightCm / 100) ** 2)
+  const widthFactor = clamp(0.84 + (bmi - 18) * 0.034, 0.84, 1.32)
+  const figureHeight = Math.round((STAGE_FIGURE_PX * heightCm) / MAX_HEIGHT_CM)
+  const markerBottom = FLOOR_PX + figureHeight
+  const rulerMarks = [150, 160, 170, 180, 190, 200]
 
   return (
     <div className="try-on-visual">
       <div
-        className="try-on-canvas"
+        className="try-on-canvas mannequin-stage"
         role="group"
         tabIndex={0}
-        aria-label={`Illustrative 3D mannequin wearing ${product.name}. Drag to rotate, or use the left and right arrow keys.`}
+        aria-label={`Illustrative mannequin, ${heightCm} centimetres and ${weightKg} kilograms. Drag to rotate, or use the left and right arrow keys.`}
         aria-describedby="try-on-rotation-help"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -143,143 +183,35 @@ export function PersonalizedTryOn({
         onPointerCancel={stopDragging}
         onKeyDown={handleKeyDown}
       >
-        {supportsWebGL ? <Canvas
-          aria-hidden="true"
-          shadows
-          dpr={[1, 1.5]}
-          camera={{ position: [0, 0, 5.4], fov: 34 }}
-          fallback={<p className="try-on-fallback">The 3D preview is unavailable in this browser.</p>}
-        >
-          <color attach="background" args={['#eeece8']} />
-          <hemisphereLight args={['#fffdf8', '#c9c2b8', 2.1]} />
-          <directionalLight position={[3, 4, 4]} intensity={2.2} castShadow />
-          <directionalLight position={[-3, 2, -3]} intensity={0.8} />
-          <AvatarFigure heightCm={heightCm} weightKg={weightKg} product={product} rotation={rotation} />
-          <mesh position={[0, -1.14, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-            <circleGeometry args={[0.62, 36]} />
-            <meshBasicMaterial color="#b9b5ae" transparent opacity={0.34} />
-          </mesh>
-        </Canvas> : <AvatarFallback heightCm={heightCm} weightKg={weightKg} product={product} rotation={rotation}/>}
+        <div className="mannequin-floor" aria-hidden="true" />
+        <div className="mannequin-ruler" aria-hidden="true">
+          {rulerMarks.map((mark) => (
+            <span key={mark} style={{ bottom: FLOOR_PX + Math.round((STAGE_FIGURE_PX * mark) / MAX_HEIGHT_CM) }}><i />{mark}</span>
+          ))}
+        </div>
+        <div className="mannequin-marker" aria-hidden="true" style={{ bottom: markerBottom }}><b>{heightCm} cm</b></div>
+        <div className="mannequin-shadow" aria-hidden="true" style={{ width: Math.round(96 * widthFactor) }} />
+        <div className="mannequin-figure" style={{ height: figureHeight, transform: `translateX(-50%) scaleX(${widthFactor.toFixed(3)})` }}>
+          <div className="mannequin-breathe">
+            {layers.map(({ index, scale, opacity }, order) => (
+              <img
+                key={`${order}-${index}`}
+                src={`/mannequin/${MANNEQUIN_VIEWS[index]}.webp`}
+                alt=""
+                width={272}
+                height={900}
+                draggable={false}
+                style={{ opacity, transform: `scaleX(${((index === 3 ? -1 : 1) * scale).toFixed(3)})` }}
+              />
+            ))}
+          </div>
+        </div>
+        <div className="mannequin-chip" aria-hidden="true">{weightKg} kg</div>
+        <div className="mannequin-label" aria-hidden="true">Mannequin · wearing the Cotton T-shirt</div>
       </div>
       <div className="try-on-rotation-hint" id="try-on-rotation-help">
         <span><RotateCcw size={14} aria-hidden="true" /></span>
         <span>Drag to rotate 360° <small>or use arrow keys</small></span>
-      </div>
-    </div>
-  )
-}
-
-function AvatarFigure({
-  heightCm,
-  weightKg,
-  product,
-  rotation,
-}: {
-  heightCm: number
-  weightKg: number
-  product: TryOnProduct
-  rotation: number
-}) {
-  const bodyWidth = 0.84 + ((weightKg - 40) / 80) * 0.3
-  const heightScale = heightCm / 168
-  const isBottomItem = product.name.toLowerCase().includes('denim')
-  const colorByProduct: Record<string, string> = {
-    Black: '#30302e',
-    Ivory: '#e7dfcf',
-    Indigo: '#54709a',
-    Rose: '#b46e79',
-  }
-  const itemColor = colorByProduct[product.color] ?? '#8a6d5e'
-  const shirtColor = isBottomItem ? '#e8e3db' : itemColor
-  const trouserColor = isBottomItem ? itemColor : (['Black', 'Indigo'].includes(product.color) ? '#cfc7ba' : '#4a4b4d')
-  const hasLongSleeves = product.name.toLowerCase().includes('shirt') || product.name.toLowerCase().includes('sweatshirt')
-  const sleeveColor = hasLongSleeves ? shirtColor : '#d9c4b2'
-
-  return (
-    <group position={[0, -1.12, 0]} scale={[bodyWidth, heightScale, 1]} rotation={[0, rotation, 0]}>
-      <mesh position={[0, 1.38, 0]} castShadow>
-        <capsuleGeometry args={[0.29, 0.54, 7, 16]} />
-        <meshStandardMaterial color={shirtColor} roughness={0.78} />
-      </mesh>
-      <mesh position={[0, 1.99, 0]}>
-        <cylinderGeometry args={[0.075, 0.08, 0.16, 16]} />
-        <meshStandardMaterial color="#ddc8b6" roughness={0.82} />
-      </mesh>
-      <mesh position={[0, 2.18, 0]} castShadow>
-        <sphereGeometry args={[0.145, 24, 20]} />
-        <meshStandardMaterial color="#e2cdbb" roughness={0.82} />
-      </mesh>
-      <mesh position={[-0.34, 1.55, 0]} rotation={[0, 0, -0.13]} castShadow>
-        <capsuleGeometry args={[0.105, 0.37, 5, 12]} />
-        <meshStandardMaterial color={shirtColor} roughness={0.78} />
-      </mesh>
-      <mesh position={[0.34, 1.55, 0]} rotation={[0, 0, 0.13]} castShadow>
-        <capsuleGeometry args={[0.105, 0.37, 5, 12]} />
-        <meshStandardMaterial color={shirtColor} roughness={0.78} />
-      </mesh>
-      <mesh position={[-0.39, 1.12, 0]} rotation={[0, 0, -0.08]}>
-        <capsuleGeometry args={[0.075, 0.37, 5, 12]} />
-        <meshStandardMaterial color={sleeveColor} roughness={0.82} />
-      </mesh>
-      <mesh position={[0.39, 1.12, 0]} rotation={[0, 0, 0.08]}>
-        <capsuleGeometry args={[0.075, 0.37, 5, 12]} />
-        <meshStandardMaterial color={sleeveColor} roughness={0.82} />
-      </mesh>
-      <mesh position={[-0.105, 0.39, 0]} castShadow>
-        <capsuleGeometry args={[0.125, 0.57, 6, 14]} />
-        <meshStandardMaterial color={trouserColor} roughness={0.86} />
-      </mesh>
-      <mesh position={[0.105, 0.39, 0]} castShadow>
-        <capsuleGeometry args={[0.125, 0.57, 6, 14]} />
-        <meshStandardMaterial color={trouserColor} roughness={0.86} />
-      </mesh>
-      <mesh position={[-0.105, -0.02, 0.1]} castShadow>
-        <boxGeometry args={[0.17, 0.1, 0.3]} />
-        <meshStandardMaterial color="#f7f5ef" roughness={0.72} />
-      </mesh>
-      <mesh position={[0.105, -0.02, 0.1]} castShadow>
-        <boxGeometry args={[0.17, 0.1, 0.3]} />
-        <meshStandardMaterial color="#f7f5ef" roughness={0.72} />
-      </mesh>
-    </group>
-  )
-}
-
-function AvatarFallback({
-  heightCm,
-  weightKg,
-  product,
-  rotation,
-}: {
-  heightCm: number
-  weightKg: number
-  product: TryOnProduct
-  rotation: number
-}) {
-  const width = 0.84 + ((weightKg - 40) / 80) * 0.3
-  const isBottomItem = product.name.toLowerCase().includes('denim')
-  const colors: Record<string, string> = { Black: '#30302e', Ivory: '#e7dfcf', Indigo: '#54709a', Rose: '#b46e79' }
-  const itemColor = colors[product.color] ?? '#8a6d5e'
-  const shirtColor = isBottomItem ? '#e8e3db' : itemColor
-  const trouserColor = isBottomItem ? itemColor : (['Black', 'Indigo'].includes(product.color) ? '#cfc7ba' : '#4a4b4d')
-  const hasLongSleeves = product.name.toLowerCase().includes('shirt') || product.name.toLowerCase().includes('sweatshirt')
-  const sleeveColor = hasLongSleeves ? shirtColor : '#d9c4b2'
-
-  return (
-    <div className="try-on-css-stage" aria-hidden="true">
-      <span className="try-on-css-shadow" />
-      <div className="try-on-css-avatar" style={{ transform: `translateX(-50%) rotateY(${rotation}rad) scale(${width}, ${heightCm / 168})` }}>
-        <span className="try-on-css-head" />
-        <span className="try-on-css-neck" />
-        <span className="try-on-css-torso" style={{ backgroundColor: shirtColor }} />
-        <span className="try-on-css-upper-arm left" style={{ backgroundColor: shirtColor }} />
-        <span className="try-on-css-upper-arm right" style={{ backgroundColor: shirtColor }} />
-        <span className="try-on-css-forearm left" style={{ backgroundColor: sleeveColor }} />
-        <span className="try-on-css-forearm right" style={{ backgroundColor: sleeveColor }} />
-        <span className="try-on-css-leg left" style={{ backgroundColor: trouserColor }} />
-        <span className="try-on-css-leg right" style={{ backgroundColor: trouserColor }} />
-        <span className="try-on-css-shoe left" />
-        <span className="try-on-css-shoe right" />
       </div>
     </div>
   )
