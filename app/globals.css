@@ -128,6 +128,35 @@
 .phone .help-article span{color:#963c54;font-size:9px;font-weight:700}
 .phone .help-article h4{margin:4px 0;color:#443a34;font-size:11px;font-weight:700}
 .phone .help-article p{margin:0;color:#756b63;font-size:10px;line-height:1.45}
+.phone .orders-heading{margin:2px 0 13px}
+.phone .orders-heading .kicker{color:#963c54;font-size:9px;letter-spacing:.14em}
+.phone .orders-heading h2{margin:5px 0 4px;color:#302923;font:600 24px/1.1 Georgia,serif}
+.phone .orders-heading p{margin:0;color:#81766e;font-size:11px;line-height:1.45}
+.phone .order-search{display:flex;align-items:center;gap:9px;min-height:43px;margin:0 0 11px;padding:0 12px;border:1px solid #eadbc8;border-radius:13px;background:#fffefa;color:#963c54}
+.phone .order-search input{width:100%;min-width:0;border:0;outline:0;background:transparent;color:#443a34;font:inherit;font-size:11px}
+.phone .order-search input::placeholder{color:#988e84}
+.phone .order-search:focus-within{outline:2px solid #963c5440;outline-offset:1px}
+.phone .orders-list{display:flex;flex-direction:column;gap:9px;margin:0;padding:0;list-style:none}
+.phone .order-card{display:flex;align-items:center;gap:10px;width:100%;min-height:76px;padding:10px;border:1px solid #eadbc8;border-radius:15px;background:#fffefa;text-align:left;transition:border-color .15s ease,transform .15s ease}
+.phone .order-card:hover{transform:translateY(-1px);border-color:#c88a98}
+.phone .order-card:focus-visible{outline:2px solid #963c54;outline-offset:2px}
+.phone .order-product-icon{display:grid;place-items:center;flex:none;width:38px;height:38px;border-radius:12px;background:#f7eee5;color:#963c54}
+.phone .order-card-main{display:flex;flex:1;flex-direction:column;gap:4px;min-width:0}
+.phone .order-card-id{display:flex;justify-content:space-between;gap:7px;color:#963c54;font-size:9px;font-weight:700;letter-spacing:.04em}
+.phone .order-card-id small{color:#9a9087;font-size:9px;font-weight:400;letter-spacing:0}
+.phone .order-card-main>strong{overflow:hidden;color:#443a34;font-size:11px;text-overflow:ellipsis;white-space:nowrap}
+.phone .order-status{display:flex;align-items:center;gap:5px;color:#805b34;font-size:9px;font-weight:600}
+.phone .order-status i{width:6px;height:6px;border-radius:50%;background:#d9a84e}
+.phone .order-status-3{color:#86512f}
+.phone .order-status-3 i{background:#db9a45}
+.phone .order-status-4{color:#54775e}
+.phone .order-status-4 i{background:#65a276}
+.phone .order-card-end{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex:none;color:#8a7c72}
+.phone .order-card-end b{color:#443a34;font-size:11px}
+.phone .order-card-end b small{font-size:9px;font-weight:400}
+.phone .orders-empty{display:flex;flex-direction:column;align-items:center;gap:7px;padding:28px 12px;color:#8b7c70;text-align:center}
+.phone .orders-empty strong{color:#443a34;font-size:12px}
+.phone .orders-empty span{font-size:10px}
 .phone-content:has(.review-sami-note) .review-card{margin:6px 0;padding:5px 10px}
 .phone-content:has(.review-sami-note) .review-line{padding:7px 0}
 .phone-content:has(.review-sami-note) .review-total{padding:8px 0 3px}
