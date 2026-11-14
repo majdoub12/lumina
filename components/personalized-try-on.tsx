@@ -1,7 +1,7 @@
 'use client'
 
 import { RotateCcw } from 'lucide-react'
-import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
+import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 
 type FitPreference = 'Closer' | 'Relaxed'
 
@@ -80,88 +80,54 @@ export function FitSliders({
 }
 
 /* ---------- Mannequin turntable ----------
-   Three photographed views (front, side, back) are blended as the user drags, so the
-   mannequin appears to turn. The figure is then scaled from the sliders:
+   Three photographed views (front, side, back) are shown one at a time. The mannequin
+   stands still and only turns when the user drags it (or uses the arrow keys): no
+   auto-rotation, no cross-fade, no breathing. All three photos stay mounted, so
+   switching views never reloads an image (that reload was the flicker).
+   The figure is scaled from the sliders:
    height  -> overall height against a 205 cm reference
    weight  -> width, through a simple height/weight ratio.
    This is an illustration, not a body scan or a fit calculation. */
-const MANNEQUIN_VIEWS = ['front', 'side', 'back', 'side'] as const
-const SIDE_WIDTH_RATIO = 165 / 270
+const MANNEQUIN_VIEWS = ['front', 'side', 'back'] as const
 const MAX_HEIGHT_CM = 205
 const STAGE_FIGURE_PX = 246
 const FLOOR_PX = 20
-const lerp = (from: number, to: number, amount: number) => from + (to - from) * amount
+const DEGREES_PER_PIXEL = 0.8
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
 
 export function MannequinPreview({ heightCm, weightKg }: { heightCm: number; weightKg: number }) {
-  const [angle, setAngle] = useState(24)
+  const [angle, setAngle] = useState(0)
   const dragging = useRef(false)
   const lastPointerX = useRef(0)
-  const velocity = useRef(0)
-  const lastInteraction = useRef(0)
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
-    let frame = 0
-    const tick = () => {
-      if (!dragging.current) {
-        if (Math.abs(velocity.current) > 0.03) {
-          velocity.current *= 0.93
-          setAngle((current) => current + velocity.current)
-        } else if (lastInteraction.current === 0 || Date.now() - lastInteraction.current > 6000) {
-          setAngle((current) => current + 0.2)
-        }
-      }
-      frame = requestAnimationFrame(tick)
-    }
-    frame = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(frame)
-  }, [])
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     dragging.current = true
-    velocity.current = 0
-    lastInteraction.current = Date.now()
     lastPointerX.current = event.clientX
     event.currentTarget.setPointerCapture(event.pointerId)
   }
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (!dragging.current) return
-    const delta = (event.clientX - lastPointerX.current) * 0.8
+    const delta = (event.clientX - lastPointerX.current) * DEGREES_PER_PIXEL
     lastPointerX.current = event.clientX
-    velocity.current = delta
-    lastInteraction.current = Date.now()
     setAngle((current) => current + delta)
   }
 
   const stopDragging = (event: PointerEvent<HTMLDivElement>) => {
     dragging.current = false
-    lastInteraction.current = Date.now()
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId)
   }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
       event.preventDefault()
-      lastInteraction.current = Date.now()
-      setAngle((current) => current + (event.key === 'ArrowLeft' ? -18 : 18))
+      setAngle((current) => current + (event.key === 'ArrowLeft' ? -30 : 30))
     }
   }
 
-  const normalized = ((angle % 360) + 360) % 360
-  const segment = Math.floor(normalized / 90)
-  const progress = (normalized % 90) / 90
-  const eased = progress * progress * (3 - 2 * progress)
-  const fromIndex = segment
-  const toIndex = (segment + 1) % 4
-  const widthOf = (view: (typeof MANNEQUIN_VIEWS)[number]) => (view === 'side' ? SIDE_WIDTH_RATIO : 1)
-  const fromWidth = widthOf(MANNEQUIN_VIEWS[fromIndex])
-  const toWidth = widthOf(MANNEQUIN_VIEWS[toIndex])
-  const layers = [
-    { index: fromIndex, scale: lerp(1, toWidth / fromWidth, eased), opacity: eased < 0.55 ? 1 : clamp((1 - eased) / 0.45, 0, 1) },
-    { index: toIndex, scale: lerp(fromWidth / toWidth, 1, eased), opacity: clamp(eased / 0.55, 0, 1) },
-  ]
+  // 0 = front, 1 = side (right), 2 = back, 3 = side (left, mirrored)
+  const step = Math.round((((angle % 360) + 360) % 360) / 90) % 4
+  const activeView = step === 3 ? 1 : step
 
   const bmi = weightKg / ((heightCm / 100) ** 2)
   const widthFactor = clamp(0.84 + (bmi - 18) * 0.034, 0.84, 1.32)
@@ -192,26 +158,24 @@ export function MannequinPreview({ heightCm, weightKg }: { heightCm: number; wei
         <div className="mannequin-marker" aria-hidden="true" style={{ bottom: markerBottom }}><b>{heightCm} cm</b></div>
         <div className="mannequin-shadow" aria-hidden="true" style={{ width: Math.round(96 * widthFactor) }} />
         <div className="mannequin-figure" style={{ height: figureHeight, transform: `translateX(-50%) scaleX(${widthFactor.toFixed(3)})` }}>
-          <div className="mannequin-breathe">
-            {layers.map(({ index, scale, opacity }, order) => (
-              <img
-                key={`${order}-${index}`}
-                src={`/mannequin/${MANNEQUIN_VIEWS[index]}.webp`}
-                alt=""
-                width={272}
-                height={900}
-                draggable={false}
-                style={{ opacity, transform: `scaleX(${((index === 3 ? -1 : 1) * scale).toFixed(3)})` }}
-              />
-            ))}
-          </div>
+          {MANNEQUIN_VIEWS.map((view, index) => (
+            <img
+              key={view}
+              src={`/mannequin/${view}.webp`}
+              alt=""
+              width={272}
+              height={900}
+              draggable={false}
+              style={{ visibility: index === activeView ? 'visible' : 'hidden', transform: index === 1 && step === 3 ? 'scaleX(-1)' : undefined }}
+            />
+          ))}
         </div>
         <div className="mannequin-chip" aria-hidden="true">{weightKg} kg</div>
         <div className="mannequin-label" aria-hidden="true">Mannequin · wearing the Cotton T-shirt</div>
       </div>
       <div className="try-on-rotation-hint" id="try-on-rotation-help">
         <span><RotateCcw size={14} aria-hidden="true" /></span>
-        <span>Drag to rotate 360° <small>or use arrow keys</small></span>
+        <span>Drag to turn the mannequin <small>or use arrow keys</small></span>
       </div>
     </div>
   )

@@ -274,3 +274,14 @@
 .mannequin-chip{position:absolute;left:12px;bottom:10px;padding:4px 8px;border-radius:11px;background:#fffefae6;color:#5b4a3f;font-size:9px;font-weight:700;box-shadow:0 1px 4px #33261c14}
 .mannequin-label{position:absolute;left:0;right:0;top:9px;text-align:center;color:#8a7a69;font-size:8px;font-weight:700;letter-spacing:.06em}
 @media(prefers-reduced-motion:reduce){.mannequin-breathe{animation:none}.mannequin-figure,.mannequin-shadow,.mannequin-marker{transition:none}}
+
+/* Mic inside the home search bar */
+.phone .search-field .search-mic{display:grid;place-items:center;flex:none;width:34px;height:34px;margin-right:-6px;padding:0;border:0;border-radius:10px;background:var(--berry);color:#fff}
+.phone .search-field .search-mic svg{color:#fff}
+.phone .search-field .search-mic.active{background:#6f253b;box-shadow:0 0 0 3px #963c5428}
+.phone .search-field .search-mic:focus-visible{outline:2px solid #963c54;outline-offset:2px}
+.phone .results-screen{display:grid;gap:12px;align-content:start}
+.phone .results-screen .orders-heading{margin-bottom:0}
+/* Mannequin: no idle movement, only the user moves it */
+.mannequin-breathe{animation:none!important}
+.mannequin-figure img{will-change:auto}
